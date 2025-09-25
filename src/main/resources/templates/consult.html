@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zxx" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>在线问诊 - 智慧医药系统</title>
+    <link rel="shortcut icon" type="image/x-icon" href="assets/images/cropped-favicon-32x32.png"/>
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link href="assets/css/style.css" rel="stylesheet" type="text/css"/>
+    <link href="assets/css/plugin.css" rel="stylesheet" type="text/css"/>
+    <link href="assets/css/dashboard.css" rel="stylesheet" type="text/css"/>
+    <link href="assets/fonts/flaticon.css" rel="stylesheet" type="text/css"/>
+    <link href="assets/css/icons.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="assets/fonts/line-icons.css" type="text/css"/>
+    <link rel="stylesheet" href="common/font-awesome/css/font-awesome.min.css">
+</head>
+<body>
+<div th:replace="common/common-bar::#header"></div>
+<section class="container py-5">
+    <h2 class="mb-4">在线问诊</h2>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <label for="departmentSelect" class="form-label">选择科室：</label>
+            <select id="departmentSelect" class="form-select">
+                <option value="">请选择科室</option>
+                <!-- 后续由JS动态填充 -->
+            </select>
+        </div>
+    </div>
+    <div class="row mb-4" id="departmentCards">
+        <div class="col-md-4 mb-4" th:each="dept : ${departments}">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${dept.name}"></h5>
+                    <p class="card-text" th:text="${dept.info}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="doctorCards">
+        <!-- 医生卡片由JS动态填充 -->
+    </div>
+</section>
+<div th:replace="common/common-bar::#footer"></div>
+<script src="assets/js/jquery-3.5.1.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+<script src="assets/js/plugin.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/custom-swiper.js"></script>
+<script src="assets/js/custom-nav.js"></script>
+<script src="common/utils/reg.js"></script>
+<script src="common/layer/layer.js"></script>
+<script src="common/custom.js"></script>
+<script>
+    $(function() {
+        // 加载科室
+        $.get('/department/all', function(depts) {
+            var $select = $('#departmentSelect');
+            $select.empty().append('<option value="">请选择科室</option>');
+            depts.forEach(function(dept) {
+                $select.append('<option value="' + dept.id + '">' + dept.name + '</option>');
+            });
+        });
+        // 选择科室加载医生
+        $('#departmentSelect').on('change', function() {
+            var deptId = $(this).val();
+            if (!deptId) {
+                $('#doctorCards').html('');
+                $('#departmentCards').show();
+                return;
+            }
+            $('#departmentCards').hide();
+            $('#doctorCards').html('<div class="text-center py-5">正在加载医生...</div>');
+            $.get('/doctor/byDepartment', {departmentId: deptId}, function(doctors) {
+                if (!doctors || doctors.length === 0) {
+                    $('#doctorCards').html('<div class="text-center py-5">该科室暂无医生</div>');
+                    return;
+                }
+                var html = '';
+                doctors.forEach(function(doc) {
+                    html += '<div class="col-md-4 mb-4">' +
+                        '<div class="card h-100">' +
+                        '<img src="' + (doc.avatar || 'assets/images/team/user-1.jpg') + '" class="card-img-top" alt="医生头像">' +
+                        '<div class="card-body">' +
+                        '<h5 class="card-title">' + doc.name + '</h5>' +
+                        '<p class="card-text">简介：' + (doc.intro || '暂无简介') + '</p>' +
+                        '<button class="btn btn-success w-100" onclick="startConsult(' + doc.id + ', \'' + doc.name + '\')">进入会诊</button>' +
+                        '</div></div></div>';
+                });
+                $('#doctorCards').html(html);
+            });
+        });
+    });
+
+    function startConsult(doctorId, doctorName) {
+        $.post('/docHistory/create', {doctorId: doctorId, doctorName: doctorName}, function(res) {
+            if(res.code === 'SUCCESS') {
+                window.location.href = '/consult/chat?doctorId=' + doctorId + '&userId=' + res.data.userId + '&role=user';
+            } else {
+                layer.msg(res.message || '创建问诊失败');
+            }
+        });
+    }
+</script>
+</body>
+</html>

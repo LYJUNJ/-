@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>排班信息</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/assets/css/style.css"/>
+    <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+</head>
+<body>
+<div th:replace="common/common-bar::#header"></div>
+<div id="dashboard">
+    <div class="container">
+        <div class="dashboard-main">
+            <div class="row">
+                <div class="col-lg-3 col-md-12 col-sm-12 col-xs-12">
+                    <div th:replace="common/common-bar::#dashboard-sidebar(cur='schedule')"></div>
+                </div>
+                <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12">
+                    <div class="dashboard-content">
+                        <div class="dashboard-list-box">
+                            <div class="dashboard-title">
+                                <h4>排班信息</h4>
+                            </div>
+                            <div class="dashboard-list-box-static">
+                                <form th:action="@{/add-schedule}" method="post" id="scheduleForm">
+                                    <input type="hidden" name="id" th:value="${schedule?.id}">
+                                    <div class="form-group">
+                                        <label>选择医生</label>
+                                        <select class="form-control" name="doctorId" id="doctorId" required>
+                                            <option value="">请选择医生</option>
+                                            <option 
+                                                th:each="doctor : ${doctors}"
+                                                th:value="${doctor.id}"
+                                                th:text="${doctor.name} + ' - ' + ${doctor.departmentName}"
+                                                th:attr="data-department-id=${doctor.departmentId}"
+                                                th:selected="${schedule?.doctorId} == ${doctor.id}">
+                                            </option>
+                                        </select>
+                                        <input type="hidden" name="departmentId" id="departmentId" th:value="${schedule?.departmentId}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>看病数量</label>
+                                        <input type="number" class="form-control" name="visitCount" th:value="${schedule?.visitCount}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>周几</label>
+                                        <select class="form-control" name="weekDay" required>
+                                            <option value="">请选择</option>
+                                            <option th:selected="${schedule?.weekDay} == '星期一'">星期一</option>
+                                            <option th:selected="${schedule?.weekDay} == '星期二'">星期二</option>
+                                            <option th:selected="${schedule?.weekDay} == '星期三'">星期三</option>
+                                            <option th:selected="${schedule?.weekDay} == '星期四'">星期四</option>
+                                            <option th:selected="${schedule?.weekDay} == '星期五'">星期五</option>
+                                            <option th:selected="${schedule?.weekDay} == '星期六'">星期六</option>
+                                            <option th:selected="${schedule?.weekDay} == '星期日'">星期日</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group text-center mt-4">
+                                        <button type="submit" class="btn btn-success btn-lg px-5">保存</button>
+                                        <a href="/all-schedule" class="btn btn-secondary btn-lg px-5 ml-2">取消</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="common/common-bar::#footer"></div>
+<script src="/assets/js/jquery-3.5.1.min.js"></script>
+<script>
+$('#doctorId').change(function() {
+    var depId = $(this).find('option:selected').attr('data-department-id');
+    $('#departmentId').val(depId);
+});
+</script>
+</body>
+</html>
