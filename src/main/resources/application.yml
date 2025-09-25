@@ -46,7 +46,7 @@ ai-key: sk-ab644cd933e846e1bbce51c5ab04ea0a
 oss:
   bucket-name: tt-sziit
   end-point: oss-cn-beijing.aliyuncs.com
-  access-key: YOUR_ACCESS_KEY_HERE
-  access-secret: YOUR_ACCESS_SECRET_HERE
+  access-key: ${OSS_ACCESS_KEY:}
+  access-secret: ${OSS_ACCESS_SECRET:}
 server:
   port:
